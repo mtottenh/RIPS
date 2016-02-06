@@ -1,0 +1,4 @@
+[package]
+name = "RIPS"
+version = "0.1.0"
+authors = ["Tottenham, Max <mtottenh@akamai.com>"]
