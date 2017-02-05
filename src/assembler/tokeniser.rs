@@ -1,11 +1,11 @@
 #[derive(Default,Debug)]
 pub struct TokenisedLine {
-    label: Option<String>,
+    pub label: Option<String>,
 
-    opcode: Option<String>,
-    operand1: Option<String>,
-    operand2: Option<String>,
-    operand3: Option<String>,
+    pub opcode: Option<String>,
+    pub operand1: Option<String>,
+    pub operand2: Option<String>,
+    pub operand3: Option<String>,
 }
 
 pub fn tokenise_line (line: String) -> Option<TokenisedLine> {
@@ -23,7 +23,7 @@ pub fn tokenise_line (line: String) -> Option<TokenisedLine> {
                 2 => tok_line.operand1 = Some(tokens[t].to_string()),
                 3 => tok_line.operand2 = Some(tokens[t].to_string()),
                 4 => tok_line.operand3 = Some(tokens[t].to_string()),
-                _ => println!("Garbage input detected {} ", tokens[t]),
+                _ => (),
             }
         }
         return Some(tok_line);
@@ -35,7 +35,7 @@ pub fn tokenise_line (line: String) -> Option<TokenisedLine> {
                 1 => tok_line.operand1 = Some(tokens[t].to_string()),
                 2 => tok_line.operand2 = Some(tokens[t].to_string()),
                 3 => tok_line.operand3 = Some(tokens[t].to_string()),
-                _ => println!("Garbage input detected {} ", tokens[t]),
+                _ => (), 
             }
         }
         return Some(tok_line);
