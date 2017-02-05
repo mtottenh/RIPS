@@ -3,7 +3,7 @@
 extern crate rustc_serialize;
 extern crate docopt;
 extern crate rips;
-use rips::assembler;
+mod assembler;
 use rips::emulator;
 
 docopt!(Args, "
