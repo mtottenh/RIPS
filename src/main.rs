@@ -1,21 +1,30 @@
-#![feature(plugin)]
-#![plugin(docopt_macros)]
-extern crate rustc_serialize;
+extern crate serde;
+use serde::Deserialize;
 extern crate docopt;
+use docopt::Docopt;
 extern crate rips;
-mod assembler;
+use rips::assembler;
 use rips::emulator;
 
-docopt!(Args, "
+static USAGE: &'static str ="
 Usage: rips asm [-v] <source> <dest>
        rips emulate [-v] <file>
 Options:
     -v, --verbose  Print debugging output. 
-");
-
+";
+#[derive(Debug, Deserialize)]
+struct Args {
+    cmd_asm: bool,
+    cmd_emulate: bool,
+    flag_verbose: bool,
+    arg_source: String,
+    arg_dest: String,
+    arg_file: String,
+}
 
 fn main() {
-    let args: Args = Args::docopt().decode()
+    let args: Args = Docopt::new(USAGE)
+                        .and_then(|d| d.deserialize()) 
                         .unwrap_or_else(|e| e.exit());
     if args.cmd_asm {
         assembler::assemble(args.arg_source, args.arg_dest);

@@ -1,10 +1,13 @@
+mod tokeniser;
+
 use std::io::prelude::*;
 use std::fs::File;
 use std::io::BufReader;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
-mod tokeniser;
-type InstrAssembleFn = fn(&tokeniser::TokenisedLine) -> u32;
+use self::tokeniser::*;
+
+type InstrAssembleFn = fn(&TokenisedLine) -> u32;
 
 const i_type_instr : [&'static str; 12] = [ "addi", "subi", "muli", "lw", "sw", "beq", "bne",
 "blt", "bgt", "ble", "bge", "mov" ];
@@ -12,31 +15,31 @@ const r_type_instr : [&'static str; 5] = [ "add", "sub", "mul", "jr", "out" ];
 const j_type_instr : [&'static str; 1] = [ "jmp" ];
 
 
-fn assemble_i_type (line: &tokeniser::TokenisedLine) -> u32 {
+fn assemble_i_type (line: &TokenisedLine) -> u32 {
     println!("Assembling I type instruction");
     return 1;
 }
 
-fn assemble_j_type (line: &tokeniser::TokenisedLine) -> u32 {
+fn assemble_j_type (line: &TokenisedLine) -> u32 {
     println!("Assembling J type instruction");
     return 1;
 }
 
-fn assemble_r_type (line: &tokeniser::TokenisedLine) -> u32 {
+fn assemble_r_type (line: &TokenisedLine) -> u32 {
     println!("Assembling R type instruction");
     return 1;
 }
 
-fn assemble_fill (line: &tokeniser::TokenisedLine) -> u32 {
+fn assemble_fill (line: &TokenisedLine) -> u32 {
 
     return 1;
 }
-fn assemble_skip (line: &tokeniser::TokenisedLine) -> u32 {
+fn assemble_skip (line: &TokenisedLine) -> u32 {
 
     return 1;
 }
 
-fn assemble_halt (line: &tokeniser::TokenisedLine) -> u32 {
+fn assemble_halt (line: &TokenisedLine) -> u32 {
 
     return 1;
 }
@@ -66,7 +69,7 @@ impl InstrFactory {
         i.table.insert("halt".to_string(), assemble_halt);
         return i
     }
-    fn create (&self, ins: &String, line: &tokeniser::TokenisedLine) -> u32 {
+    fn create (&self, ins: &String, line: &TokenisedLine) -> u32 {
         println!("Assembling op: {}", ins);
         if self.table.contains_key(ins) {
             self.table[ins](line);
@@ -90,7 +93,7 @@ pub fn assemble (input: String, output: String) {
     let mut sym_tab = BTreeMap::new();
     let mut address : u32 = 0;
     for l in lines {
-        let t = tokeniser::tokenise_line(l.unwrap());
+        let t = tokenise_line(l.unwrap());
 
         match t {
             None => (),
@@ -121,7 +124,7 @@ pub fn assemble (input: String, output: String) {
     let fac = InstrFactory::new();
     /* Pass 2 - assemble instructions */
     for l in lines {
-         let t = tokeniser::tokenise_line(l.unwrap());
+         let t = tokenise_line(l.unwrap());
          match &t {
             &None => (),
             &Some(ref tokens) => {
