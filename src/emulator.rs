@@ -1,7 +1,6 @@
 use std::fs::File;
 
 mod machine_state {
-    use std::io::Cursor;
     use std::io::prelude::*;
     use std::fs::File;
     use std::convert::TryInto;
@@ -79,7 +78,7 @@ mod machine_state {
             let ins = decoder::decode(instruction);
             eprintln!(" * Repr = {:?}", ins); 
             match ins {
-                Some(Instruction::RType{Opcode,r1,r2,r3}) => {
+                Some(Instruction::RType{_,r1,r2,r3}) => {
                     self.regfile[r1.unwrap() as usize] = self.regfile[r2.unwrap() as usize] 
                                                             + self.regfile[r3.unwrap() as usize];
                                                                           
@@ -95,7 +94,7 @@ mod machine_state {
             let ins = decoder::decode(instruction);
             eprintln!(" * Repr = {:?}", ins); 
             match ins {
-                Some(Instruction::IType{Opcode,r1,r2,imm}) => {
+                Some(Instruction::IType{_,r1,r2,imm}) => {
 
                     self.regfile[r1.unwrap() as usize] = self.regfile[r2.unwrap() as usize] 
                                                             + imm.unwrap() as u32;
@@ -111,20 +110,29 @@ mod machine_state {
             let ins = decoder::decode(instruction);
             eprintln!(" * Repr = {:?}", ins);
             match ins {
-                Some(Instruction::IType{Opcode, r1, r2, imm}) => {
+                Some(Instruction::IType{_, r1, r2, imm}) => {
                     self.regfile[r1.unwrap() as usize] = (self.regfile[r2.unwrap() as usize] as i32 - (imm.unwrap() as i32)) as u32;
                 },
                 _ => {}
             };
         }
         pub fn mul_instruction(&mut self, instruction: &u32) {
+            eprintln!("subi called");
+            let ins = decoder::decode(instruction);
+            eprintln!(" * Repr = {:?}", ins);
+            match ins {
+                Some(Instruction::RType{_,r1,r2,r3}) => { 
+                    self.regfile[r1.unwrap() as usize] = self.regfile[r2.unwrap() as usize] * self.regfile[r3.unwrap() as usize];
+                }
+                _ => {},
+            }
         }
         pub fn muli_instruction(&mut self, instruction: &u32) {
             eprintln!("muli called"); 
             let ins = decoder::decode(instruction);
             eprintln!(" * Repr = {:?}", ins); 
             match ins {
-                Some(Instruction::IType{Opcode, r1 ,r2, imm}) => {
+                Some(Instruction::IType{_, r1 ,r2, imm}) => {
                     //self.regfile[r1] = self.regfile[r2] * imm
                     eprintln!("Attempting: {} * {}", self.regfile[r2.unwrap() as usize], imm.unwrap() as u32);
                     self.regfile[r1.unwrap() as usize] = (self.regfile[r2.unwrap() as usize] as i32 * (imm.unwrap() as i32)) as u32;
@@ -138,7 +146,7 @@ mod machine_state {
             let ins = decoder::decode(instruction);
             eprintln!(" * Repr = {:?}", ins); 
             match ins { 
-                Some(Instruction::IType{Opcode,r1,r2,imm}) => {
+                Some(Instruction::IType{_,r1,r2,imm}) => {
                     let location: usize = (self.regfile[r2.unwrap() as usize] + imm.unwrap() as u32) as usize;
                     //TODO - check_mem_access?
                     self.regfile[r1.unwrap() as usize] = self.read_word(location);
@@ -151,7 +159,7 @@ mod machine_state {
             let ins = decoder::decode(instruction);
             eprintln!(" * Repr = {:?}", ins); 
             match ins {
-               Some(Instruction::IType{Opcode,r1,r2,imm}) => {
+               Some(Instruction::IType{_,r1,r2,imm}) => {
                    let location: usize = (self.regfile[r2.unwrap() as usize] + imm.unwrap() as u32) as usize;
                    //TODO - check_mem_access?
                    let value = self.regfile[r1.unwrap() as usize];
@@ -183,7 +191,7 @@ mod machine_state {
             let ins = decoder::decode(instruction);
             eprintln!(" * Repr = {:?}", ins); 
             match ins {           
-                Some(Instruction::RType{Opcode, r1, r2, r3}) => {
+                Some(Instruction::RType{_, r1, _, _}) => {
                     print!("{}", ((self.regfile[r1.unwrap() as usize] & 0xFF) as u8) as char); 
                 },
                 _ => {}
@@ -244,7 +252,7 @@ mod decoder {
             Some(InstructionType::R) => Some(decode_r(instruction)),
             Some(InstructionType::I) => Some(decode_i(instruction)),
             Some(InstructionType::J) => Some(decode_j(instruction)),
-            _ => None,
+            _ => Some(Instruction::Halt),
         }
     }
     fn decode_r(instruction: &u32) -> Instruction {
@@ -288,7 +296,6 @@ mod decoder {
         // Now some bit twiddling
         let REG_WIDTH = 5;
         let OPCODE_WIDTH=6;
-        let RTYPE_UNUSED_PADDING = 11;
         let regs =  *instruction;
         let ret = match reg_no {
             1 => (regs >> (32 - (OPCODE_WIDTH + REG_WIDTH))) & 0x1F,
@@ -361,7 +368,7 @@ pub fn emulate(input: String) {
     let mut f = File::open(&input).unwrap();
     machine.load_memory_from_file(&mut f);
     {
-        let mut opcode = 0;
+        let mut opcode;
         loop {
             let instruction = machine.get_current_instruction();
             opcode = decoder::opcode(&instruction);
